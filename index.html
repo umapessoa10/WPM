@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WPM Counter</title>
+    <style>
+        body {
+            background-color: black;
+            color: yellow;
+            font-family: verdana;
+        }
+
+        #word-box {
+            margin: 20px;
+            padding: 20px;
+            border: 1px solid yellow;
+            min-height: 200px;
+            border-radius: 15px;
+            font-size: 30px;
+        }
+
+        #word-box span {
+            color: lightgray;
+        }
+
+        #word-box span.correct {
+            color: #404040;
+        }
+
+        #word-box span.incorrect {
+            color: red;
+        }
+
+        #user-input {
+            margin: 20px;
+            padding: 10px;
+            color: yellow;
+            background: transparent;
+            border: 1px solid yellow;
+            border-radius: 10px;
+            width: 90%;
+            font-size: 30px;
+        }
+
+        .current {
+            text-decoration: underline;
+        }
+
+        .word-count {
+            padding: 5px;
+            margin: 20px;
+            margin-top: 10px;
+            background: transparent;
+            border: transparent;
+            border-bottom: 2px solid yellow;
+            color: yellow;
+        }
+
+        #start-button {
+            background: transparent;
+            border: 1px yellow solid;
+            border-radius: 5px;
+            color: yellow;
+        }
+        h1 {
+            color: yellow;
+
+        }
+
+
+    </style>
+</head>
+<body>
+    <center><h1>WPM Counter | Domin</h1></center>
+    <div id="word-box"></div>
+    <input type="text" id="user-input" placeholder="Type the words here" />
+    <input type="number" id="word-count-input" placeholder="Enter word count" class="word-count"/>
+    <button id="start-button">Start</button>
+
+</body>
+<script>
+var words = [
+  "the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as",
+  "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will",
+  "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which",
+  "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "person", "into", "year",
+  "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its",
+  "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even",
+  "new", "want", "because", "any", "these", "give", "day", "most", "us"
+  // Add more words as needed to increase the length of the list
+];
+var currentIndex = 0;
+var userTypedWord = '';
+var startTime = null;
+
+function randomizeWords(words, wordCount) {
+  let wordsClone = [...words]; // Create a clone of the original array
+  let randomizedWords = [];
+
+  wordCount = Math.min(wordCount, wordsClone.length); // Limit word count if it exceeds array length
+
+  while (randomizedWords.length < wordCount) {
+    let randomIndex = Math.floor(Math.random() * wordsClone.length);
+    randomizedWords.push(wordsClone[randomIndex]);
+    wordsClone.splice(randomIndex, 1);
+  }
+
+  return randomizedWords;
+}
+
+function renderWords(wordss) {
+  var html = '';
+  for (var i = 0; i < wordss.length; i++) {
+    var wordClass = '';
+    if (i < currentIndex) {
+      wordClass = 'correct';
+    } else if (i === currentIndex) {
+      wordClass = 'current';
+    }
+    html += '<span class="' + wordClass + '">' + wordss[i] + '</span> ';
+  }
+  document.getElementById('word-box').innerHTML = html;
+}
+
+function checkWin() {
+  if (currentIndex === wordss.length) {
+    var endTime = new Date().getTime();
+    var timeTaken = (endTime - startTime) / 1000; // Calculate time taken in seconds
+    var wpm = (wordss.length / timeTaken) * 60; // Calculate WPM
+    wpm = Math.round(wpm); // Round the value to a whole number
+    alert("Congratulations! You've completed the words.\nTime taken: " + timeTaken.toFixed(2) + " seconds\nWPM: " + wpm);
+    document.getElementById('user-input').disabled = true;
+    document.getElementById('start-button').disabled = false; // Enable the start button
+  }
+}
+
+function restartTest() {
+  currentIndex = 0;
+  userTypedWord = '';
+  startTime = null;
+  document.getElementById('user-input').value = '';
+  document.getElementById('user-input').disabled = false;
+  document.getElementById('start-button').disabled = true; // Disable the start button
+}
+
+document.getElementById('start-button').addEventListener('click', function() {
+  var wordCountInput = parseInt(document.getElementById('word-count-input').value);
+  if (!isNaN(wordCountInput) && wordCountInput > 0 && wordCountInput <= words.length) {
+    var wordCount = wordCountInput;
+    wordss = randomizeWords(words, wordCount);
+    renderWords(wordss);
+    restartTest();
+  } else {
+    alert("Please enter a valid word count between 1 and " + words.length);
+  }
+});
+
+document.getElementById('user-input').addEventListener('keydown', function(e) {
+  if (e.key === " ") {
+    e.preventDefault();
+    var typedWord = userTypedWord.trim();
+    if (typedWord === wordss[currentIndex]) {
+      if (currentIndex === 0) {
+        startTime = new Date().getTime(); // Start the timer when the first word is typed correctly
+      }
+      currentIndex++;
+      document.getElementById('user-input').value = '';
+      userTypedWord = '';
+      renderWords(wordss);
+      checkWin();
+    }
+  }
+});
+
+document.getElementById('user-input').addEventListener('input', function(e) {
+  userTypedWord = e.target.value;
+  var typedWord = userTypedWord.trim();
+  if (typedWord === wordss[currentIndex] || wordss[currentIndex].startsWith(typedWord)) {
+    document.getElementById('word-box').children[currentIndex].className = 'current';
+  } else {
+    document.getElementById('word-box').children[currentIndex].className = 'incorrect';
+  }
+});
+
+
+
+</script>
+</html>
